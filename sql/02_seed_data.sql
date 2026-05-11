@@ -5,6 +5,8 @@
 -- Inserts are ordered to respect foreign-key dependencies.
 -- =====================================================================
 
+SET NAMES utf8mb4;
+
 -- ---------------------------------------------------------------------
 -- Lookup tables
 -- ---------------------------------------------------------------------
@@ -103,15 +105,15 @@ INSERT INTO registered_user
     (User_ID, Status_code, Username, First_name, Last_name, Email, Phone_number, Address_ID,
      Passkey, Date_of_birth, Gender_code, Registration_date, Currency_ID, Account_balance)
 VALUES
-    (1, 'A', 'pokerface_usa',  'John',      'Doe',     'john@usa.com',   15550101,  101, 'hash123', '1990-01-01', 'M', '2023-01-01 10:00:00', 'USD',   500.00),
-    (2, 'A', 'slot_queen_usa', 'Jane',      'Smith',   'jane@usa.com',   15550102,  102, 'hash123', '1992-05-15', 'F', '2023-02-01 11:00:00', 'USD',  1200.50),
-    (3, 'A', 'vegas_mike',     'Mike',      'Ross',    'mike@usa.com',   15550103,  103, 'hash123', '1985-08-20', 'M', '2023-03-01 12:00:00', 'USD',    50.00),
-    (4, 'A', 'maple_bet',      'Sarah',     'Connor',  'sarah@ca.com',  141655501,  104, 'hash123', '1995-12-12', 'F', '2023-04-01 09:30:00', 'USD',   300.00),
-    (5, 'A', 'toronto_king',   'Drake',     'Graham',  'drake@ca.com',  141655502,  105, 'hash123', '1988-10-10', 'M', '2023-05-01 14:20:00', 'USD',  5000.00),
-    (6, 'A', 'london_player',  'James',     'Bond',    'james@uk.com',  442079460,  106, 'hash123', '1980-07-07', 'M', '2023-06-01 16:45:00', 'GBP',   150.00),
-    (7, 'A', 'royal_bet_uk',   'Elizabeth', 'Windsor', 'liz@uk.com',    442079461,  107, 'hash123', '1950-04-21', 'F', '2023-07-01 08:00:00', 'GBP', 10000.00),
-    (8, 'A', 'berlin_pro',     'Hans',      'Mueller', 'hans@de.com',   493012345,  108, 'hash123', '1991-09-09', 'M', '2023-08-01 18:00:00', 'EUR',   200.00),
-    (9, 'A', 'paris_luck',     'Pierre',    'Curie',   'pierre@fr.com', 331234567,  109, 'hash123', '1993-03-03', 'M', '2023-09-01 19:15:00', 'EUR',     0.00);
+    (1, 'A', 'pokerface_usa',  'John',      'Doe',     'john@usa.com',   '+1-555-0101',     101, 'hash123', '1990-01-01', 'M', '2023-01-01 10:00:00', 'USD',   500.00),
+    (2, 'A', 'slot_queen_usa', 'Jane',      'Smith',   'jane@usa.com',   '+1-555-0102',     102, 'hash123', '1992-05-15', 'F', '2023-02-01 11:00:00', 'USD',  1200.50),
+    (3, 'A', 'vegas_mike',     'Mike',      'Ross',    'mike@usa.com',   '+1-555-0103',     103, 'hash123', '1985-08-20', 'M', '2023-03-01 12:00:00', 'USD',    50.00),
+    (4, 'A', 'maple_bet',      'Sarah',     'Connor',  'sarah@ca.com',   '+1-416-555-0101', 104, 'hash123', '1995-12-12', 'F', '2023-04-01 09:30:00', 'USD',   300.00),
+    (5, 'A', 'toronto_king',   'Drake',     'Graham',  'drake@ca.com',   '+1-416-555-0102', 105, 'hash123', '1988-10-10', 'M', '2023-05-01 14:20:00', 'USD',  5000.00),
+    (6, 'A', 'london_player',  'James',     'Bond',    'james@uk.com',   '+44-20-7946-0001',106, 'hash123', '1980-07-07', 'M', '2023-06-01 16:45:00', 'GBP',   150.00),
+    (7, 'A', 'royal_bet_uk',   'Elizabeth', 'Windsor', 'liz@uk.com',     '+44-20-7946-0002',107, 'hash123', '1950-04-21', 'F', '2023-07-01 08:00:00', 'GBP', 10000.00),
+    (8, 'A', 'berlin_pro',     'Hans',      'Mueller', 'hans@de.com',    '+49-30-12345',    108, 'hash123', '1991-09-09', 'M', '2023-08-01 18:00:00', 'EUR',   200.00),
+    (9, 'A', 'paris_luck',     'Pierre',    'Curie',   'pierre@fr.com',  '+33-1-2345-6789', 109, 'hash123', '1993-03-03', 'M', '2023-09-01 19:15:00', 'EUR',     0.00);
 
 -- ---------------------------------------------------------------------
 -- KYC documents

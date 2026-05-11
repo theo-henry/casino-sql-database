@@ -4,9 +4,11 @@
 
 **Query:** see [`sql/03_assignment_queries.sql`](../sql/03_assignment_queries.sql) — Q2.
 
+`DENSE_RANK() ≤ 3` keeps every game tied within the top three ranks.
+
 ## Result
 
-| Game_name                      | Total_Bets_Placed |
+| Game_name                      | total_bets_placed |
 |--------------------------------|------------------:|
 | Grankie Dettori’s Black Jack   | 4                 |
 | Irish Riches                   | 4                 |
@@ -14,6 +16,7 @@
 
 ## Notes
 
-- Blackjack titles dominate demand in the seed data — both the flagship table game
-  and the low-stakes variant make the top 3.
-- *Grankie Dettori’s Black Jack* and *Irish Riches* are tied at 4 bets each.
+- *Grankie Dettori’s Black Jack* and *Irish Riches* are tied for first
+  place at 4 bets each.
+- Blackjack as a category dominates demand: both the flagship table game
+  and the low-stakes variant make the top three.

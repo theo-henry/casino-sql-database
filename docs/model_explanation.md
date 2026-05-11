@@ -69,17 +69,40 @@ immediate financial inflow while the payout (if any) is a conditional outflow.
 Losses are represented simply by the absence of a payout row — which makes the
 Gross Gaming Revenue calculation a single `LEFT JOIN`.
 
+## Engineering Choices
+
+- **Engine and charset.** Every table is `ENGINE = InnoDB` with
+  `DEFAULT CHARSET = utf8mb4` so that game names with non-ASCII characters
+  (curly apostrophes, accented letters) round-trip safely, and so that
+  foreign-key constraints are honoured.
+- **DATETIME over TIMESTAMP.** Event timestamps use `DATETIME` rather than
+  `TIMESTAMP`: no implicit timezone conversion, no 2038 ceiling, and no
+  surprise auto-initialisation rules.
+- **AUTO_INCREMENT surrogate keys.** All synthetic primary keys are
+  auto-incrementing; explicit seed IDs still load cleanly under InnoDB,
+  which advances the counter to the largest inserted value.
+- **CHECK constraints.** Domain invariants are encoded in the schema —
+  positive bet and payout amounts, coherent date windows on game rounds
+  and KYC verification, valid bet-range ordering on each game, and
+  non-negative wallet balances. Violations cannot be inserted, regardless
+  of application bugs.
+- **Analytical indexes.** Composite indexes back the access patterns used
+  by the assignment queries (`bet(User_ID, Bet_time)`, `bet(Bet_time)`,
+  `game_round(Game_ID, Start_time)`, `kyc_document(User_ID, Status_code)`).
+- **Phone numbers as strings.** `Phone_number` is `VARCHAR(20)` to
+  preserve leading zeros, country-code prefixes, and formatting.
+
 ## Assumptions and Limitations
 
-- **Currency normalisation.** Players hold balances in their native currency
-  (USD/EUR/GBP). `bet.exchange_rate_to_system` and `ticket.exchange_rate` are
-  reserved for converting amounts into a single accounting currency; the
-  assignment queries report native-currency totals and do not apply the rate.
-- **Display widths.** Some integer columns retain MySQL's legacy display-width
-  syntax (e.g. `BIGINT(20)`). These are accepted by MySQL 8 but no longer
-  affect behaviour.
-- **Single-payout assumption.** `bet_payout` uses `Bet_ID` as its primary key,
-  meaning at most one payout row per bet. Multi-stage payouts (e.g. bonus
-  unlocks) would require relaxing this constraint.
-- **Soft deletes.** No `is_deleted` / `deleted_at` columns. The model assumes
-  archival is handled outside the operational schema.
+- **Single-payout assumption.** `bet_payout` uses `Bet_ID` as its primary
+  key, so at most one payout row per bet. Multi-stage payouts (bonus
+  unlocks, side-bet wins) would require relaxing this constraint.
+- **FX rate sourced from the bet.** Payouts inherit their parent bet's
+  `exchange_rate_to_system`, which is correct for in-play settlement but
+  ignores hold-period drift. A production system would either snapshot a
+  rate on the payout row or post FX-revaluation adjustments separately.
+- **Soft deletes.** No `is_deleted` / `deleted_at` columns. Archival is
+  assumed to happen outside the operational schema.
+- **ISO codes.** `Issuing_country` uses `CHAR(2)` but accepts non-ISO
+  values (`'UK'` rather than `'GB'`) to match the rest of the dataset.
+  A stricter design would reference an ISO 3166-1 lookup table.

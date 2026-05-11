@@ -4,23 +4,20 @@
 
 **Query:** see [`sql/03_assignment_queries.sql`](../sql/03_assignment_queries.sql) — Q3.
 
+The query uses `RANK() OVER (ORDER BY total_wins DESC)` and filters
+`rnk = 1`, so a true tie at first place returns every winner instead of
+silently dropping one.
+
 ## Result
 
-| Game_name                      | Total_Wins |
-|--------------------------------|-----------:|
-| Grankie Dettori’s Black Jack   | 3          |
-
-## Notes
-
-- *Grankie Dettori’s Black Jack* and *Low Stakes Blackjack* both have 3 winning bets
-  in the seed data. `LIMIT 1` returns whichever the engine emits first; on the
-  reference dataset this is *Grankie Dettori’s Black Jack*.
-- For a tie-safe answer, swap `LIMIT 1` for a `DENSE_RANK()` window or a `HAVING`
-  clause against the max win count — both Blackjack titles tie for "easiest to win."
-
-## Full tie-breakdown
-
-| Game_name                      | Total_Wins |
+| Game_name                      | total_wins |
 |--------------------------------|-----------:|
 | Grankie Dettori’s Black Jack   | 3          |
 | Low Stakes Blackjack           | 3          |
+
+## Notes
+
+- Both blackjack titles are tied with 3 winning bets each and share the
+  top rank.
+- Treating either one as a unique "winner" would be misleading; the
+  tie-aware query exposes both, which is the correct business answer.

@@ -4,9 +4,12 @@
 
 **Query:** see [`sql/03_assignment_queries.sql`](../sql/03_assignment_queries.sql) — Q1.
 
+The query uses `DENSE_RANK() ≤ 3` rather than `LIMIT 3` so that ties at the
+top three ranks are returned in full and the result is deterministic.
+
 ## Result
 
-| Country | Total_Players |
+| Country | total_players |
 |---------|--------------:|
 | USA     | 3             |
 | Canada  | 2             |
@@ -15,6 +18,7 @@
 ## Notes
 
 - USA leads with 3 registered players (User IDs 1, 2, 3).
-- Canada and UK are tied at 2 players each. MySQL's `ORDER BY Total_Players DESC LIMIT 3`
-  returns both; their relative order on a tie is implementation-defined.
-- Germany and France each have 1 player and fall outside the top 3.
+- Canada and UK are tied at 2 players each. Both are returned because they
+  occupy rank 2 by `DENSE_RANK`; their order is broken alphabetically.
+- Germany and France each have 1 player (rank 3) and fall outside the
+  top-three threshold.

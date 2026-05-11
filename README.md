@@ -110,15 +110,27 @@ casino-sql-database/
 ## Key Skills Demonstrated
 
 - Relational modelling and normalisation to **3NF**
-- Schema design for a regulated, compliance-heavy domain (KYC, AML traceability)
-- Foreign-key-safe DDL ordering and reproducible data seeding
-- Multi-table SQL with `JOIN`, `GROUP BY`, `LEFT JOIN`, aggregate functions,
-  and `UNION ALL`-based ledger queries
-- Defensive query design (`COALESCE` for missing payouts, separation of bet
-  inflows and payout outflows for revenue calculation)
-- Data-integrity validation queries (winning-bet → payout checks, bet-range
-  checks, time-window checks)
-- Clean, portfolio-grade documentation of design rationale and assumptions
+- Schema design for a regulated, compliance-heavy domain (KYC, AML
+  traceability, RNG-seed retention for fairness audits)
+- Production-grade DDL: `InnoDB` + `utf8mb4`, `AUTO_INCREMENT` surrogate
+  keys, `DATETIME` event timestamps, named foreign keys, composite
+  analytical indexes
+- Domain invariants encoded as `CHECK` constraints (positive amounts,
+  coherent date windows, valid bet-range ordering, non-negative balances)
+- Foreign-key-safe DDL ordering, idempotent `DROP TABLE` reloads, and
+  reproducible data seeding
+- Analytical SQL with **CTEs** and **window functions** (`RANK`,
+  `DENSE_RANK`) for deterministic, tie-aware Top-N queries
+- Multi-currency ledger logic via `bet.exchange_rate_to_system`,
+  applied to monthly revenue and per-player profit
+- Trailing-window analytics anchored on `MAX(txn_date)` so reports stay
+  meaningful regardless of when the data was loaded
+- Defensive query design (`COALESCE` for missing payouts, `UNION ALL`
+  cash-flow ledgers, separation of stake inflows from payout outflows)
+- Standalone integrity-check queries that complement the schema-level
+  constraints
+- Portfolio-grade documentation of design rationale, engineering
+  decisions, and remaining assumptions
 
 ## License
 

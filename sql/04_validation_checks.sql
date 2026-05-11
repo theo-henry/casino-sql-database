@@ -7,6 +7,8 @@
 -- the row-count block which always reports counts for inspection.
 -- =====================================================================
 
+SET NAMES utf8mb4;
+
 
 -- ---------------------------------------------------------------------
 -- Row counts of every main table (visual sanity check)
