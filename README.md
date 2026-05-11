@@ -1,9 +1,6 @@
 # Online Casino — MySQL Database
 
-A normalised MySQL database for a regulated online casino, built as a SQL II
-group assignment. The repository contains the full ERD, schema DDL, sample
-data, and analytical queries that answer five business questions about
-players, games, and revenue.
+A normalised MySQL database for a regulated online casino, built for an assignment in my SQL based data architectures course. The repository contains the full ERD, schema DDL, sample data, and analytical queries that answer five business questions about players, games, and revenue.
 
 ---
 
