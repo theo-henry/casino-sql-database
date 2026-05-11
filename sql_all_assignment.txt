@@ -1,0 +1,540 @@
+2) DDL & DML data inserts
+
+CREATE TABLE User_Status (
+  Status_code  CHAR(1)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Status_code)
+);
+
+CREATE TABLE User_Gender (
+  Gender_code  CHAR(1)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Gender_code)
+);
+
+CREATE TABLE KYC_Document_Type (
+  Doc_type_code CHAR(3)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Doc_type_code)
+);
+
+CREATE TABLE KYC_Verification_Status (
+  Status_code  CHAR(1)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Status_code)
+);
+
+CREATE TABLE Address_Type (
+  Type_ID    INT     NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Type_ID)
+);
+
+CREATE TABLE Currency (
+  Currency_ID  CHAR(3)   NOT NULL,
+  Currency_Code SMALLINT(6) NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Currency_ID)
+);
+
+CREATE TABLE CC_Payment_Type (
+  CCType    CHAR(2)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (CCType)
+);
+
+CREATE TABLE CC_Payment_State (
+  CCState    CHAR(1)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (CCState)
+);
+
+CREATE TABLE ZIP_code (
+  ZIP_code INT     NOT NULL,
+  Country  VARCHAR(20) NOT NULL,
+  City   VARCHAR(20) NOT NULL,
+  State   VARCHAR(20) NOT NULL,
+  PRIMARY KEY (ZIP_code, Country)
+);
+
+CREATE TABLE User_Address (
+  Address_ID   BIGINT(20)  NOT NULL,
+  Type_ID     INT     NOT NULL,
+  Address_Number SMALLINT(6) NOT NULL,
+  ZIP_code    INT     NOT NULL,
+  Country     VARCHAR(20) NOT NULL,
+  PRIMARY KEY (Address_ID),
+  CONSTRAINT fk_user_address_type
+    FOREIGN KEY (Type_ID) REFERENCES Address_Type(Type_ID),
+  CONSTRAINT fk_user_address_zip
+    FOREIGN KEY (ZIP_code, Country) REFERENCES ZIP_code(ZIP_code, Country)
+);
+
+CREATE TABLE Registered_User (
+  User_ID     INT      NOT NULL,
+  Status_code   CHAR(1)    NOT NULL,
+  Username    VARCHAR(64)  NOT NULL,
+  First_name   VARCHAR(64)  NOT NULL,
+  Last_name    VARCHAR(64)  NOT NULL,
+  Second_surname VARCHAR(64),
+  Email      VARCHAR(64)  NOT NULL,
+  Phone_number  BIGINT(20),
+  Address_ID   BIGINT(20),
+  Passkey    VARCHAR(64)  NOT NULL,
+  Date_of_birth  DATE     NOT NULL,
+  Gender_code   CHAR(1)    NOT NULL,
+  Registration_date TIMESTAMP  NOT NULL,
+  Currency_ID   CHAR(3)    NOT NULL,
+  Account_balance DECIMAL(12,2),
+  PRIMARY KEY (User_ID),
+  UNIQUE KEY uq_registered_user_username (Username),
+  UNIQUE (Email),
+  CONSTRAINT fk_registered_user_status
+    FOREIGN KEY (Status_code)  REFERENCES User_Status(Status_code),
+  CONSTRAINT fk_registered_user_gender
+    FOREIGN KEY (Gender_code)  REFERENCES User_Gender(Gender_code),
+  CONSTRAINT fk_registered_user_address
+    FOREIGN KEY (Address_ID)  REFERENCES User_Address(Address_ID),
+  CONSTRAINT fk_registered_user_currency
+    FOREIGN KEY (Currency_ID)  REFERENCES Currency(Currency_ID)
+);
+
+CREATE TABLE KYC_Document (
+  KYC_doc_ID     BIGINT(20) NOT NULL,
+  User_ID       INT     NOT NULL,
+  Doc_type_code    CHAR(3)   NOT NULL,
+  Document_number   VARCHAR(100) NOT NULL,
+  Issuing_country   CHAR(2),
+  Issue_date     DATE,
+  Expiry_date     DATE,
+  Status_code     CHAR(1)   NOT NULL DEFAULT 'P',
+  Submitted_timestamp TIMESTAMP  NOT NULL,
+  Verified_timestamp TIMESTAMP,
+  Last_updated    TIMESTAMP,
+  PRIMARY KEY (KYC_doc_ID),
+  CONSTRAINT fk_kyc_document_user
+    FOREIGN KEY (User_ID)    REFERENCES Registered_User(User_ID),
+  CONSTRAINT fk_kyc_document_type
+    FOREIGN KEY (Doc_type_code) REFERENCES KYC_Document_Type(Doc_type_code),
+  CONSTRAINT fk_kyc_document_status
+    FOREIGN KEY (Status_code)  REFERENCES KYC_Verification_Status(Status_code)
+);
+
+CREATE TABLE Game_Type (
+  Game_type_code CHAR(3)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Game_type_code)
+);
+
+CREATE TABLE Game (
+  Game_ID       INT      NOT NULL,
+  Game_name      VARCHAR(100)  NOT NULL,
+  Game_type_code    CHAR(3)    NOT NULL,
+  Min_bet_amount    DECIMAL(12,2) NOT NULL,
+  Max_bet_amount    DECIMAL(12,2) NOT NULL,
+  PRIMARY KEY (Game_ID),
+  CONSTRAINT fk_game_type
+    FOREIGN KEY (Game_type_code) REFERENCES Game_Type(Game_type_code)
+);
+
+CREATE TABLE Game_Round (
+  Round_ID          BIGINT(20) NOT NULL,
+  Game_ID          INT     NOT NULL,
+  Start_time         TIMESTAMP  NOT NULL,
+  End_time          TIMESTAMP  NOT NULL,
+  Random_number_generator_seed INT    NOT NULL,
+  PRIMARY KEY (Round_ID),
+  CONSTRAINT fk_game_round_game
+    FOREIGN KEY (Game_ID) REFERENCES Game(Game_ID)
+);
+
+CREATE TABLE Bet_outcome_type (
+  Outcome_code CHAR(1)   NOT NULL,
+  Description  VARCHAR(40) NOT NULL,
+  PRIMARY KEY (Outcome_code)
+);
+
+CREATE TABLE Bet (
+  Bet_ID    BIGINT(20)  NOT NULL,
+  Round_ID   BIGINT(20)  NOT NULL,
+  User_ID    INT     NOT NULL,
+  Bet_amount  DECIMAL(12,2) NOT NULL,
+  Bet_time   TIMESTAMP  NOT NULL,
+  Outcome_code CHAR(1)   NOT NULL,
+  Ticket_ID   BIGINT(20)  NOT NULL,
+  PRIMARY KEY (Bet_ID),
+  CONSTRAINT fk_bet_round
+    FOREIGN KEY (Round_ID)   REFERENCES Game_Round(Round_ID),
+  CONSTRAINT fk_bet_user
+    FOREIGN KEY (User_ID)   REFERENCES Registered_User(User_ID),
+  CONSTRAINT fk_bet_outcome
+    FOREIGN KEY (Outcome_code) REFERENCES Bet_outcome_type(Outcome_code)
+);
+
+CREATE TABLE Bet_payout (
+  Bet_ID      BIGINT(20)  NOT NULL,
+  Payout_amount  DECIMAL(12,2) NOT NULL,
+  Payout_timestamp TIMESTAMP  NOT NULL,
+  PRIMARY KEY (Bet_ID),
+  CONSTRAINT fk_bet_payout_bet
+    FOREIGN KEY (Bet_ID) REFERENCES Bet(Bet_ID)
+);
+
+CREATE TABLE Ticket_Type (
+  TType_ID   INT     NOT NULL,
+  Type_Name VARCHAR(40) NOT NULL,
+  Description VARCHAR(40) NOT NULL,
+  PRIMARY KEY (TType_ID)
+);
+
+CREATE TABLE Ticket (
+  Ticket_ID    BIGINT(20)  NOT NULL,
+  User_ID     INT     NOT NULL,
+  Currency_ID   CHAR(3)   NOT NULL,
+  Ticket_timestamp TIMESTAMP  NOT NULL,
+  TType_ID     INT     NOT NULL,
+  Reference_ID   BIGINT(20)  NOT NULL,
+  Amount      DECIMAL(12,2) NOT NULL,
+  PRIMARY KEY (Ticket_ID),
+  CONSTRAINT fk_ticket_user
+    FOREIGN KEY (User_ID)   REFERENCES Registered_User(User_ID),
+  CONSTRAINT fk_ticket_currency
+    FOREIGN KEY (Currency_ID) REFERENCES Currency(Currency_ID),
+  CONSTRAINT fk_ticket_type
+    FOREIGN KEY (TType_ID)  REFERENCES Ticket_Type(TType_ID)
+);
+
+ALTER TABLE Bet
+  ADD CONSTRAINT fk_bet_ticket
+    FOREIGN KEY (Ticket_ID) REFERENCES Ticket(Ticket_ID);
+
+CREATE TABLE CC_Payment (
+  CCPayment_ID  BIGINT(20)  NOT NULL,
+  CCPaytran_ID  BIGINT(20)  NOT NULL,
+  Currency_ID   CHAR(3)    NOT NULL,
+  Expected_amount DECIMAL(20,5) NOT NULL,
+  Approving_amount DECIMAL(20,5),
+  Approved_amount DECIMAL(20,5),
+  CCPayment_state CHAR(1)    NOT NULL,
+  Timecreated   TIMESTAMP   NOT NULL,
+  Timeupdated   TIMESTAMP,
+  Timeexpired   TIMESTAMP,
+  PRIMARY KEY (CCPayment_ID),
+  CONSTRAINT fk_cc_payment_currency
+    FOREIGN KEY (Currency_ID)   REFERENCES Currency(Currency_ID),
+  CONSTRAINT fk_cc_payment_state
+    FOREIGN KEY (CCPayment_state) REFERENCES CC_Payment_State(CCState)
+);
+
+CREATE TABLE CC_Payment_Card (
+  CCPayment_ID BIGINT(20) NOT NULL,
+  Payment_Type CHAR(2)   NOT NULL,
+  Is_encrypt  CHAR(1)   NOT NULL,
+  Card_number VARCHAR(64) NOT NULL,
+  Bankname   VARCHAR(64) NOT NULL,
+  CCExpdate  CHAR(6)   NOT NULL,
+  PRIMARY KEY (CCPayment_ID),
+  CONSTRAINT fk_cc_payment_card_payment
+    FOREIGN KEY (CCPayment_ID) REFERENCES CC_Payment(CCPayment_ID),
+  CONSTRAINT fk_cc_payment_card_type
+    FOREIGN KEY (Payment_Type) REFERENCES CC_Payment_Type(CCType)
+);
+
+ALTER TABLE cc_payment
+  ADD COLUMN User_ID INT(11) NOT NULL
+    AFTER CCPaytran_ID;
+
+ALTER TABLE cc_payment
+  ADD CONSTRAINT fk_cc_payment_user
+    FOREIGN KEY (User_ID)
+    REFERENCES registered_user (User_ID);
+     
+ALTER TABLE ticket
+  ADD COLUMN Payment_ID BIGINT(20) NULL
+    AFTER TType_ID;
+
+ALTER TABLE ticket
+  ADD CONSTRAINT fk_ticket_payment
+    FOREIGN KEY (Payment_ID)
+    REFERENCES cc_payment (CCPayment_ID);
+
+ALTER TABLE Bet 
+DROP FOREIGN KEY fk_bet_ticket;
+
+ALTER TABLE Bet 
+DROP COLUMN Ticket_ID;
+
+ALTER TABLE Registered_User 
+MODIFY Account_balance DECIMAL(12,2) DEFAULT 0.00;
+
+ALTER TABLE Bet 
+ADD COLUMN exchange_rate_to_system DECIMAL(12, 6) DEFAULT 1.000000;
+
+ALTER TABLE Ticket 
+ADD COLUMN exchange_rate DECIMAL(12, 6) DEFAULT 1.000000;
+
+-- INSERTING DATA
+
+-- Status & Types
+INSERT INTO user_status (Status_code, Description) VALUES 
+('A', 'Active'), ('B', 'Banned'), ('P', 'Pending');
+
+INSERT INTO user_gender (Gender_code, Description) VALUES 
+('M', 'Male'), ('F', 'Female'), ('O', 'Other');
+
+INSERT INTO kyc_document_type (Doc_type_code, Description) VALUES 
+('PAS', 'Passport'), ('DL', 'Drivers License'), ('ID', 'National ID');
+
+INSERT INTO kyc_verification_status (Status_code, Description) VALUES 
+('P', 'Pending'), ('V', 'Verified'), ('R', 'Rejected');
+
+INSERT INTO address_type (Type_ID, Description) VALUES 
+('1', 'Street'), ('2', 'Avenue'), ('3', 'Boulevard'), ('4','Road');
+
+INSERT INTO currency (Currency_ID, Currency_Code, Description) VALUES 
+('USD', 840, 'US Dollar'), ('EUR', 978, 'Euro'), ('GBP', 826, 'British Pound');
+
+INSERT INTO bet_outcome_type (Outcome_code, Description) VALUES 
+('W', 'Win'), ('L', 'Loss'), ('P', 'Push/Tie');
+
+INSERT INTO game_type (Game_type_code, Description) VALUES 
+('SLT', 'Slots'), ('BLK', 'Blackjack'), ('ROL', 'Roulette'), ('POK', 'Poker'), ('CRP', 'Craps'), ('LIV','Live game'), ('KEN', 'Keno'), ('SPT', 'Sports Betting');
+
+INSERT INTO ticket_type (TType_ID, Type_Name, Description) VALUES 
+(1, 'Deposit', 'User loads wallet'), (2, 'Withdrawal', 'User cashes out');
+
+INSERT INTO cc_payment_type (CCType, Description) VALUES 
+('VS', 'Visa'), ('MC', 'MasterCard'), ('AM', 'American Express');
+
+INSERT INTO cc_payment_state (CCState, Description) VALUES 
+('0', 'State_new'), ('1', 'State_approving'), ('2', 'State_approved'), ('3', 'State_failed'), ('4','State_cancelled'), ('5', 'State_expired');
+
+-- Zip Codes
+INSERT INTO zip_code (ZIP_code, Country, City, State) VALUES 
+('100001', 'USA', 'New York', 'NY'),
+('902140', 'USA', 'Beverly Hills', 'CA'),
+('552778', 'Canada', 'Toronto', 'ON'),
+('992876', 'UK', 'London', 'England'),
+('101155', 'Germany', 'Berlin', 'Berlin'),
+('750011', 'France', 'Paris', 'Ile-de-France');
+
+-- User Addresses
+INSERT INTO user_address (Address_ID, Type_ID, Address_Number, ZIP_code, Country) VALUES 
+(101, 2, 12, '100001', 'USA'),    
+(102, 1, 45, '100001', 'USA'),    
+(103, 3, 88, '902140', 'USA'),   
+(104, 4, 10, '552778', 'Canada'),
+(105, 1, 22, '552778', 'Canada'),
+(106, 1, 5, '992876', 'UK'),
+(107, 1, 7, '992876', 'UK'),
+(108, 1, 99, '101155', 'Germany'),
+(109, 3, 1, '750011', 'France');
+
+-- Registered Users
+INSERT INTO registered_user (User_ID, Status_code, Username, First_name, Last_name, Email, Phone_number, Address_ID, Passkey, Date_of_birth, Gender_code, Registration_date, Currency_ID, Account_balance) VALUES 
+(1, 'A', 'pokerface_usa', 'John', 'Doe', 'john@usa.com', '15550101', 101, 'hash123', '1990-01-01', 'M', '2023-01-01 10:00:00', 'USD', 500.00),
+(2, 'A', 'slot_queen_usa', 'Jane', 'Smith', 'jane@usa.com', '15550102', 102, 'hash123', '1992-05-15', 'F', '2023-02-01 11:00:00', 'USD', 1200.50),
+(3, 'A', 'vegas_mike', 'Mike', 'Ross', 'mike@usa.com', '15550103', 103, 'hash123', '1985-08-20', 'M', '2023-03-01 12:00:00', 'USD', 50.00),
+(4, 'A', 'maple_bet', 'Sarah', 'Connor', 'sarah@ca.com', '141655501', 104, 'hash123', '1995-12-12', 'F', '2023-04-01 09:30:00', 'USD', 300.00),
+(5, 'A', 'toronto_king', 'Drake', 'Graham', 'drake@ca.com', '141655502', 105, 'hash123', '1988-10-10', 'M', '2023-05-01 14:20:00', 'USD', 5000.00),
+(6, 'A', 'london_player', 'James', 'Bond', 'james@uk.com', '442079460', 106, 'hash123', '1980-07-07', 'M', '2023-06-01 16:45:00', 'GBP', 150.00),
+(7, 'A', 'royal_bet_uk', 'Elizabeth', 'Windsor', 'liz@uk.com', '442079461', 107, 'hash123', '1950-04-21', 'F', '2023-07-01 08:00:00', 'GBP', 10000.00),
+(8, 'A', 'berlin_pro', 'Hans', 'Mueller', 'hans@de.com', '493012345', 108, 'hash123', '1991-09-09', 'M', '2023-08-01 18:00:00', 'EUR', 200.00),
+(9, 'A', 'paris_luck', 'Pierre', 'Curie', 'pierre@fr.com', '331234567', 109, 'hash123', '1993-03-03', 'M', '2023-09-01 19:15:00', 'EUR', 0.00);
+
+-- Games
+INSERT INTO game (Game_ID, Game_name, Game_type_code, Min_bet_amount, Max_bet_amount) VALUES 
+(1, 'Grankie Dettori’s Black Jack', 'BLK', 5.00, 500.00),
+(2, 'American Roulette', 'ROL', 1.00, 1000.00),
+(3, 'Irish Riches', 'SLT', 0.20, 100.00),
+(4, 'Low Stakes Blackjack', 'BLK', 1.00, 50.00),
+(5, 'Aces & Faces', 'POK', 0.25, 50.00),
+(6, 'Mega Moolah Slots', 'SLT', 0.50, 100.00),
+(7, 'Live Baccarat', 'LIV', 10.00, 2000.00),
+(8, 'Craps Classic', 'CRP', 5.00, 500.00),
+(9, 'Super Keno', 'KEN', 1.00, 100.00),
+(10, 'Premier League Betting', 'SPT', 1.00, 5000.00);
+
+-- Game Rounds
+INSERT INTO game_round (Round_ID, Game_ID, Start_time, End_time, Random_number_generator_seed) VALUES 
+(1001, 1, '2024-01-15 10:00:00', '2024-01-15 10:00:05', 12345),
+(1002, 3, '2024-02-14 14:00:00', '2024-02-14 14:02:00', 67890),
+(1003, 2, '2024-03-20 20:00:00', '2024-03-20 20:01:00', 11111),
+(1004, 1, '2024-04-10 09:00:00', '2024-04-10 09:00:05', 22222),
+(1005, 4, '2024-05-05 18:30:00', '2024-05-05 18:32:00', 33333),
+(1006, 5, '2024-06-15 11:00:00', '2024-06-15 11:00:05', 44444),
+(1007, 8, '2024-07-04 22:00:00', '2024-07-04 22:02:00', 55555),
+(1008, 1, '2024-08-12 15:00:00', '2024-08-12 15:03:00', 66666),
+(1009, 3, '2024-09-01 08:00:00', '2024-09-01 08:00:10', 77777),
+(1010, 10, '2024-10-31 23:00:00', '2024-10-31 23:05:00', 88888),
+(1011, 4, '2024-11-11 16:00:00', '2024-11-11 16:02:00', 99999),
+(1012, 3, '2024-12-25 10:00:00', '2024-12-25 10:00:05', 10101);
+
+-- Bets
+INSERT INTO bet (Bet_ID, Round_ID, User_ID, Bet_amount, Bet_time, Outcome_code, exchange_rate_to_system) VALUES 
+(501, 1001, 1, 50.00, '2024-01-15 10:00:00', 'L', 1.0),
+(502, 1001, 2, 50.00, '2024-01-15 10:00:01', 'W', 1.0),
+(503, 1002, 3, 20.00, '2024-02-14 14:00:00', 'L', 1.0),
+(504, 1002, 1, 20.00, '2024-02-14 14:00:10', 'L', 1.0),
+(505, 1003, 4, 200.00, '2024-03-20 20:00:00', 'L', 1.0),
+(506, 1004, 2, 100.00, '2024-04-10 09:00:00', 'W', 1.0),
+(507, 1005, 5, 20.00, '2024-05-05 18:30:00', 'W', 1.0),
+(508, 1005, 6, 20.00, '2024-05-05 18:31:00', 'W', 1.2),
+(509, 1006, 1, 10.00, '2024-06-15 11:00:00', 'L', 1.0),
+(510, 1007, 3, 50.00, '2024-07-04 22:00:00', 'L', 1.0),
+(511, 1008, 1, 200.00, '2024-08-12 15:00:00', 'W', 1.0),
+(512, 1009, 2, 50.00, '2024-09-01 08:00:00', 'L', 1.0),
+(513, 1010, 7, 1000.00, '2024-10-31 23:00:00', 'L', 1.25), 
+(514, 1011, 5, 25.00, '2024-11-11 16:00:00', 'W', 1.0),
+(515, 1012, 4, 150.00, '2024-12-25 10:00:00', 'L', 1.0);
+
+-- Bet Payouts
+INSERT INTO bet_payout (Bet_ID, Payout_amount, Payout_timestamp) VALUES 
+(502, 100.00, '2024-01-15 10:05:00'),
+(506, 200.00, '2024-04-10 09:05:00'), 
+(507, 40.00, '2024-05-05 18:35:00'), 
+(508, 40.00, '2024-05-05 18:35:00'), 
+(511, 400.00, '2024-08-12 15:05:00'),
+(514, 50.00, '2024-11-11 16:05:00');
+
+-- Credit Card Payments
+INSERT INTO cc_payment (CCPayment_ID, CCPaytran_ID, User_ID, Currency_ID, Expected_amount, Approving_amount, Approved_amount, CCPayment_state, Timecreated) VALUES 
+(801, 9001, 1, 'USD', 1000.00, 1000.00, 1000.00, '2', '2024-01-01 09:00:00'),
+(802, 9002, 5, 'USD', 5000.00, 5000.00, 5000.00, '2', '2024-05-01 10:00:00');
+
+-- Tickets
+INSERT INTO ticket (Ticket_ID, User_ID, Currency_ID, Ticket_timestamp, TType_ID, Reference_ID, Amount, exchange_rate, Payment_ID) VALUES 
+(701, 1, 'USD', '2024-01-01 09:05:00', 1, 801, 1000.00, 1.0, 801),
+(702, 5, 'USD', '2024-05-01 10:05:00', 1, 802, 5000.00, 1.0, 802);
+
+-- Credit Card Payment
+INSERT INTO cc_payment (CCPayment_ID, CCPaytran_ID, User_ID, Currency_ID, Expected_amount, Approving_amount, Approved_amount, CCPayment_state, Timecreated) VALUES 
+(803, 9003, 3, 'USD', 200.00, 200.00, 200.00, '2', '2024-03-01 11:00:00'),
+(804, 9004, 4, 'USD', 300.00, 300.00, 300.00, '2', '2024-04-01 12:00:00'),
+(805, 9005, 5, 'USD', 5000.00, 5000.00, 5000.00, '2', '2024-05-01 13:00:00'),
+(806, 9006, 6, 'GBP', 150.00, 150.00, 150.00, '2', '2024-06-01 14:00:00'),
+(807, 9007, 7, 'GBP', 10000.00, 10000.00, 10000.00, '2', '2024-07-01 15:00:00'),
+(808, 9008, 8, 'EUR', 200.00, 200.00, 200.00, '2', '2024-08-01 16:00:00'),
+(809, 9009, 9, 'EUR', 100.00, 100.00, 100.00, '3', '2024-09-01 17:00:00');
+
+-- KYC Documents
+INSERT INTO kyc_document (KYC_doc_ID, User_ID, Doc_type_code, Document_number, Issuing_country, Issue_date, Expiry_date, Status_code, Submitted_timestamp, Verified_timestamp) VALUES 
+(901, 1, 'PAS', 'US123456789', 'US', '2020-01-01', '2030-01-01', 'V', '2023-01-02 10:00:00', '2023-01-03 10:00:00'),
+(902, 2, 'DL', 'NY-987654321', 'US', '2021-05-15', '2025-05-15', 'V', '2023-02-02 11:00:00', '2023-02-03 11:00:00'),
+(903, 3, 'ID', 'US-ID-555666', 'US', '2022-08-20', '2032-08-20', 'P', '2023-03-02 12:00:00', NULL),
+(904, 4, 'PAS', 'CA987654321', 'CA', '2019-12-12', '2029-12-12', 'V', '2023-04-02 09:30:00', '2023-04-03 09:30:00'),
+(905, 5, 'DL', 'ON-11223344', 'CA', '2021-10-10', '2026-10-10', 'V', '2023-05-02 14:20:00', '2023-05-03 14:20:00'),
+(906, 6, 'PAS', 'UK112233445', 'UK', '2018-07-07', '2028-07-07', 'V', '2023-06-02 16:45:00', '2023-06-03 16:45:00'),
+(907, 7, 'DL', 'UK-DL-998877', 'UK', '2020-04-21', '2030-04-21', 'V', '2023-07-02 08:00:00', '2023-07-03 08:00:00'),
+(908, 8, 'ID', 'DE-ID-123456', 'DE', '2021-09-09', '2031-09-09', 'V', '2023-08-02 18:00:00', '2023-08-03 18:00:00'),
+(909, 9, 'PAS', 'FR998877665', 'FR', '2022-03-03', '2032-03-03', 'R', '2023-09-02 19:15:00', '2023-09-03 19:15:00');
+
+-- Credit Card Details
+INSERT INTO cc_payment_card (CCPayment_ID, Payment_Type, Is_encrypt, Card_number, Bankname, CCExpdate) VALUES 
+(801, 'VS', 'Y', '4111xxxxxxxx1111', 'Chase Bank', '1225'),
+(802, 'MC', 'Y', '5100xxxxxxxx2222', 'Bank of America', '1124'),
+(803, 'AM', 'Y', '3782xxxxxxxx0005', 'Amex Centurion', '0926'),
+(804, 'VS', 'Y', '4500xxxxxxxx3333', 'RBC Royal Bank', '0527'),
+(805, 'MC', 'Y', '5500xxxxxxxx0055', 'TD Bank', '0626'),
+(806, 'VS', 'Y', '4222xxxxxxxx4444', 'Barclays', '0825'),
+(807, 'MC', 'Y', '5444xxxxxxxx8888', 'HSBC UK', '0128'),
+(808, 'VS', 'Y', '4333xxxxxxxx9999', 'Deutsche Bank', '1026'),
+(809, 'MC', 'Y', '5222xxxxxxxx7777', 'BNP Paribas', '0325');
+
+3) Include an explanation of your model
+
+Here is a description of the logical reasoning behind our data model. This explanation follows the chronological design process we used to construct a compliant, scalable, and normalized online casino database.
+
+The Registered User
+
+We began our design process by identifying the central entity of our system which is the player. We created the registered_user table to serve as the anchor for all other relationships. When defining the attributes for this table, we immediately applied normalization principles to ensure data integrity.
+We recognized that storing status descriptions (like "Active" or "Banned") and gender descriptions directly in the user table would create redundant data and risk inconsistencies. To solve this and satisfy Third Normal Form, we extracted these attributes into separate lookup tables: user_status and user_gender. This decision ensures that any change to a status description happens in one place and propagates system-wide without needing to update millions of user records.
+
+Handling Location and Address Logic
+
+Next, we addressed how to store user locations. We realized that a simple text field for an address was insufficient for a real-world application that requires precise geolocation for legal compliance. We created the user_address table to separate location data from account data.
+To strictly adhere to Third Normal Form, we analyzed the dependencies within an address. We determined that a City and State are functionally dependent on the ZIP Code, not strictly on the specific address ID. If we stored "New York" and "NY" in every single address row, we would have a transitive dependency. We resolved this by creating a dedicated zip_code table. Now, the user_address table only refers to a ZIP code, and the zip_code table acts as the single source of truth for the City, State, and Country associated with that code.
+
+Security and Compliance (KYC)
+
+Operating an online casino requires strict adherence to Know Your Customer (KYC) laws. We knew we needed to store identity documents, but adding columns to the user table would be inflexible. A user might upload a passport today and a driver’s license next year. To handle this, we designed the kyc_document table as a distinct entity linked to the user.
+We further normalized this by creating kyc_document_type (to standardize inputs like Passport or ID Card) and kyc_verification_status (to track the approval workflow). This structure provides a clear audit trail. We can see exactly when a document was submitted, who verified it, and its current validity without cluttering the main user profile.
+
+Structuring the Financial Ledger
+
+We then moved to the most critical aspect of the business which is money management. We made a deliberate choice to decouple "banking" from "gaming." We introduced the ticket table to serve as the general ledger for the user's wallet. This table records distinct financial events like deposits and withdrawals.
+For the actual processing of funds, we designed the cc_payment table. We noticed that credit card details (like the encrypted number and bank name) are attributes of the card used, not the transaction itself. To maintain strict data separation and security, we moved these details into cc_payment_card. This ensures that cc_payment remains a lightweight record of the transaction success or failure, while the sensitive card data is isolated in its own table. 
+
+Constructing the Game Engine
+
+Finally, we designed the core product offering. We established a hierarchy starting with game_type to categorize our inventory into Slots, Blackjack, Roulette, Poker, and more...The game table holds the specific configuration for each title, such as minimum and maximum bet limits.
+We recognized that a "Bet" is not just an isolated action but occurs within a specific context. Therefore, we introduced the game_round entity. A round represents a single spin of a slot machine or a single hand of blackjack. This table captures the start and end times and, crucially, the Random Number Generator seed. This is vital for real-world fairness auditing.
+The bet table links the user to a specific game_round. We purposely decoupled bet from the ticket table to optimize performance, as high-frequency betting would overwhelm a banking ledger. Lastly, we separated the outcome into a bet_payout table. This allows us to record a bet as a financial inflow immediately while the payout acts as a conditional financial outflow. This separation handles losses gracefully (no row in the payout table) and simplifies the calculation of Gross Gaming Revenue.
+
+
+4) SQL with the answers for each of the four questions shown in the document. Show the SQL statement and include output sing your data.
+
+-- 1. Which are the top 3 countries with the greatest number of players?
+SELECT ua.Country, COUNT(ru.User_ID) AS Total_Players
+FROM Registered_User ru
+JOIN User_Address ua ON ru.Address_ID = ua.Address_ID
+GROUP BY ua.Country
+ORDER BY Total_Players DESC
+LIMIT 3;
+
+
+
+
+
+
+-- 2. Which are the top 3 demanded casino games?
+SELECT g.Game_name, COUNT(b.Bet_ID) AS Total_Bets_Placed
+FROM Bet b
+JOIN Game_Round gr ON b.Round_ID = gr.Round_ID
+JOIN Game g ON gr.Game_ID = g.Game_ID
+GROUP BY g.Game_name
+ORDER BY Total_Bets_Placed DESC
+LIMIT 3;
+
+
+
+-- 3. Which is the easiest game to win, by number of bets won by players?
+SELECT g.Game_name, COUNT(b.Bet_ID) AS Total_Wins
+FROM Bet b
+JOIN Game_Round gr ON b.Round_ID = gr.Round_ID
+JOIN Game g ON gr.Game_ID = g.Game_ID
+WHERE b.Outcome_code = 'W'
+GROUP BY g.Game_name
+ORDER BY Total_Wins DESC
+LIMIT 1;
+
+
+-- 4. Show a linear graph of revenue for the last 12 months
+SELECT DATE_FORMAT(Transaction_Date, '%Y-%m') AS Month, SUM(Cash_Flow) AS Net_Revenue
+FROM (
+  SELECT Bet_time AS Transaction_Date, Bet_amount AS Cash_Flow
+  FROM Bet
+  UNION ALL
+  SELECT Payout_timestamp AS Transaction_Date, -Payout_amount AS Cash_Flow
+  FROM Bet_payout
+) AS Monthly_Financials
+GROUP BY Month
+ORDER BY Month ASC;
+
+
+
+
+
+
+5) Fifth Question made by our team
+
+-- 5. Who are the top 3 players generating the highest Net Profit for the casino, and what is their average bet size?
+SELECT ru.Username, ru.First_name, COUNT(b.Bet_ID) AS Total_Bets_Placed, ROUND(AVG(b.Bet_amount), 2) AS Average_Bet_Size,
+(SUM(b.Bet_amount) - SUM(COALESCE(bp.Payout_amount, 0))) AS Casino_Net_Profit
+FROM Registered_User ru
+JOIN Bet b ON ru.User_ID = b.User_ID
+LEFT JOIN Bet_payout bp ON b.Bet_ID = bp.Bet_ID
+GROUP BY ru.User_ID, ru.Username, ru.First_name
+ORDER BY Casino_Net_Profit DESC
+LIMIT 3;
+
